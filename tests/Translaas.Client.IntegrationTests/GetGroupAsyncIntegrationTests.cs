@@ -22,10 +22,9 @@ public class GetGroupAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        // Note: These values should match your development API test data
-        var project = "test-project";
-        var group = "ui";
-        var lang = "en";
+        var project = Configuration.DefaultProject;
+        var group = IntegrationTestFixtures.SimpleGroup;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         var result = await Client.GetGroupAsync(project, group, lang);
@@ -52,9 +51,9 @@ public class GetGroupAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        var project = "test-project";
-        var group = "ui";
-        var lang = "en";
+        var project = Configuration.DefaultProject;
+        var group = IntegrationTestFixtures.SimpleGroup;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
         var format = "json";
 
         // Act
@@ -82,9 +81,9 @@ public class GetGroupAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        var project = "test-project";
+        var project = Configuration.DefaultProject;
         var group = "nonexistent-group";
-        var lang = "en";
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         // Note: API returns 204 No Content for non-existent groups, which returns empty group
@@ -107,8 +106,8 @@ public class GetGroupAsyncIntegrationTests : IntegrationTestBase
 
         // Arrange
         var project = "nonexistent-project";
-        var group = "ui";
-        var lang = "en";
+        var group = IntegrationTestFixtures.SimpleGroup;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         // Note: API returns 204 No Content for non-existent projects, which returns empty group

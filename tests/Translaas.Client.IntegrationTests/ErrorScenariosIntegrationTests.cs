@@ -45,13 +45,17 @@ public class ErrorScenariosIntegrationTests : IDisposable
         var invalidOptions = new TranslaasClientOptions
         {
             ApiKey = "invalid-api-key-12345",
-            BaseUrl = _configuration.BaseUrl
+            BaseUrl = _configuration.BaseUrl,
+            DefaultProjectId = _configuration.DefaultProject
         };
         var invalidClient = new TranslaasClient(_httpClient, invalidOptions);
 
         // Act
         var exception = await Assert.ThrowsAsync<TranslaasApiException>(
-            () => invalidClient.GetEntryAsync("ui", "button.save", "en"));
+            () => invalidClient.GetEntryAsync(
+                IntegrationTestFixtures.SimpleGroup,
+                IntegrationTestFixtures.SimpleEntry,
+                IntegrationTestFixtures.DefaultLanguage));
 
         // Assert
         exception.Should().NotBeNull();
@@ -76,14 +80,18 @@ public class ErrorScenariosIntegrationTests : IDisposable
         var invalidOptions = new TranslaasClientOptions
         {
             ApiKey = _configuration.ApiKey,
-            BaseUrl = "https://invalid-url-that-does-not-exist-12345.com/api"
+            BaseUrl = "https://invalid-url-that-does-not-exist-12345.com/api",
+            DefaultProjectId = _configuration.DefaultProject
         };
         var invalidClient = new TranslaasClient(_httpClient, invalidOptions);
 
         // Act & Assert
         // This should throw either TranslaasApiException or HttpRequestException
         await Assert.ThrowsAnyAsync<Exception>(
-            () => invalidClient.GetEntryAsync("ui", "button.save", "en"));
+            () => invalidClient.GetEntryAsync(
+                IntegrationTestFixtures.SimpleGroup,
+                IntegrationTestFixtures.SimpleEntry,
+                IntegrationTestFixtures.DefaultLanguage));
     }
 
     [Fact]
@@ -100,6 +108,7 @@ public class ErrorScenariosIntegrationTests : IDisposable
         {
             ApiKey = _configuration.ApiKey,
             BaseUrl = _configuration.BaseUrl,
+            DefaultProjectId = _configuration.DefaultProject,
             Timeout = TimeSpan.FromMilliseconds(1) // Very short timeout to force timeout
         };
         if (_httpClient == null)
@@ -111,7 +120,10 @@ public class ErrorScenariosIntegrationTests : IDisposable
 
         // Act
         var exception = await Assert.ThrowsAsync<TranslaasApiException>(
-            () => timeoutClient.GetEntryAsync("ui", "button.save", "en"));
+            () => timeoutClient.GetEntryAsync(
+                IntegrationTestFixtures.SimpleGroup,
+                IntegrationTestFixtures.SimpleEntry,
+                IntegrationTestFixtures.DefaultLanguage));
 
         // Assert
         exception.Should().NotBeNull();
@@ -132,7 +144,8 @@ public class ErrorScenariosIntegrationTests : IDisposable
         var options = new TranslaasClientOptions
         {
             ApiKey = _configuration.ApiKey,
-            BaseUrl = _configuration.BaseUrl
+            BaseUrl = _configuration.BaseUrl,
+            DefaultProjectId = _configuration.DefaultProject
         };
         if (_httpClient == null)
         {

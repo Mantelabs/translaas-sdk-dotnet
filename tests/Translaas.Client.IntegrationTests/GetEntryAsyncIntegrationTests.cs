@@ -22,10 +22,9 @@ public class GetEntryAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        // Note: These values should match your development API test data
-        var group = "ui";
-        var entry = "button.save";
-        var lang = "en";
+        var group = IntegrationTestFixtures.SimpleGroup;
+        var entry = IntegrationTestFixtures.SimpleEntry;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         var result = await Client.GetEntryAsync(group, entry, lang);
@@ -44,9 +43,9 @@ public class GetEntryAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        var group = "ui";
-        var entry = "items.count";
-        var lang = "en";
+        var group = IntegrationTestFixtures.PluralGroup;
+        var entry = IntegrationTestFixtures.PluralEntry;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
         var number = 5;
 
         // Act
@@ -68,7 +67,7 @@ public class GetEntryAsyncIntegrationTests : IntegrationTestBase
         // Arrange
         var group = "nonexistent";
         var entry = "nonexistent.entry";
-        var lang = "en";
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         // Note: API returns 204 No Content for non-existent entries, which returns the entry key as fallback
@@ -93,12 +92,16 @@ public class GetEntryAsyncIntegrationTests : IntegrationTestBase
         var invalidOptions = new TranslaasClientOptions
         {
             ApiKey = "invalid-api-key",
-            BaseUrl = Configuration.BaseUrl
+            BaseUrl = Configuration.BaseUrl,
+            DefaultProjectId = Configuration.DefaultProject
         };
         var invalidClient = new TranslaasClient(HttpClient, invalidOptions);
 
         // Act & Assert
         await Assert.ThrowsAsync<TranslaasApiException>(
-            () => invalidClient.GetEntryAsync("ui", "button.save", "en"));
+            () => invalidClient.GetEntryAsync(
+                IntegrationTestFixtures.SimpleGroup,
+                IntegrationTestFixtures.SimpleEntry,
+                IntegrationTestFixtures.DefaultLanguage));
     }
 }

@@ -11,9 +11,13 @@ This project contains integration tests for the Translaas Client SDK. These test
 
 Integration tests are configured via environment variables:
 
-- **TRANSLAAS_API_KEY** (required): Your API key for the development environment
-- **TRANSLAAS_BASE_URL** (optional): Base URL for the API. Defaults to `https://sdk-api.translaas.local`
-  - **Note**: Do NOT include `/api` in the BaseUrl - the client adds `/api/` to all endpoints automatically
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `TRANSLAAS_API_KEY` | **Yes** to run | — | Raw `X-Api-Key` value |
+| `TRANSLAAS_BASE_URL` | No | `https://api.translaas.local` | API origin only (no `/api` or `/sdk` suffix) |
+| `TRANSLAAS_DEFAULT_PROJECT` | No | `translaas-sdk-samples` | Project id for scoped reads |
+
+**Note:** Do NOT include `/api` in the BaseUrl — the client adds `/sdk/v1/translations/...` and `/api/v1/...` paths automatically.
 
 ## Running Integration Tests
 
@@ -21,7 +25,8 @@ Integration tests are configured via environment variables:
 
 ```powershell
 $env:TRANSLAAS_API_KEY = "your-api-key-here"
-$env:TRANSLAAS_BASE_URL = "https://api-dev.translaas.com"  # Optional - do NOT include /api
+$env:TRANSLAAS_BASE_URL = "https://api.translaas.local"  # Optional
+$env:TRANSLAAS_DEFAULT_PROJECT = "translaas-sdk-samples"  # Optional
 dotnet test tests/Translaas.Client.IntegrationTests
 ```
 
@@ -29,7 +34,8 @@ dotnet test tests/Translaas.Client.IntegrationTests
 
 ```bash
 export TRANSLAAS_API_KEY="your-api-key-here"
-export TRANSLAAS_BASE_URL="https://api-dev.translaas.com"  # Optional - do NOT include /api
+export TRANSLAAS_BASE_URL="https://api.translaas.local"  # Optional
+export TRANSLAAS_DEFAULT_PROJECT="translaas-sdk-samples"  # Optional
 dotnet test tests/Translaas.Client.IntegrationTests
 ```
 
@@ -48,19 +54,36 @@ dotnet test tests/Translaas.Client.IntegrationTests --filter "FullyQualifiedName
 - **If TRANSLAAS_API_KEY is not set**: Tests will be skipped automatically (no failures)
 - **If TRANSLAAS_API_KEY is set**: Tests will run against the configured API
 
-## Test Data Requirements
+## Local Docker (`platform/translaas`)
 
-The integration tests expect certain test data to exist in your development API:
+Local Compose exposes one API origin for Admin (`/api/v1/...`) and SDK (`/sdk/v1/...`) routes. The default base URL is **`https://api.translaas.local`** (same as `TRANSLAAS_BASE_URL` in platform `.env.example`).
 
-- **Project**: `test-project` (must exist and contain translation data)
-- **Group**: `ui` (must exist within the project)
-- **Entries**: `button.save`, `button.cancel`, `items.count` (must exist within the group)
-- **Locales**: At least `en` (and optionally `fr`, `es`, `de`)
+```powershell
+# After: docker compose --profile core up -d
+$env:TRANSLAAS_API_KEY = "<your-sdk-api-key>"
+dotnet test tests/Translaas.Client.IntegrationTests
+```
 
-**Important**: If your API doesn't have this test data, the tests will fail. You have two options:
+## Fixture Data
 
-1. **Create the test data** in your API to match the test expectations
-2. **Update the test files** to use data that exists in your API (modify the hardcoded values in the test files)
+Canonical strings live in [translaas-sdk-examples `translaas_sdk_samples_strings.csv`](https://github.com/Mantelabs/translaas-sdk-examples/blob/main/dotnet/docs/translaas_sdk_samples_strings.csv). Live tests default to:
+
+| Field | Value |
+|-------|-------|
+| Project | `translaas-sdk-samples` |
+| Group (simple entry) | `common` |
+| Entry (simple) | `welcome.message` |
+| Group (plural) | `messages` |
+| Entry (plural) | `item` |
+| Language | `en` (optional: `fr`, `es`, `de`) |
+
+Example SDK URL (matches Postman):
+
+`GET /sdk/v1/translations/text?project=translaas-sdk-samples&group=common&lang=en&entry=welcome.message`
+
+Constants are centralized in `IntegrationTestFixtures.cs`. Override the project with `TRANSLAAS_DEFAULT_PROJECT` when your API uses a different project id.
+
+Tests that require populated payloads **soft-skip** when the API returns empty containers (204).
 
 ### API Behavior Notes
 

@@ -17,6 +17,11 @@ public class IntegrationTestConfiguration
     public string BaseUrl { get; }
 
     /// <summary>
+    /// Gets the default project id for scoped SDK reads.
+    /// </summary>
+    public string DefaultProject { get; }
+
+    /// <summary>
     /// Gets a value indicating whether integration tests are enabled.
     /// </summary>
     public bool IsEnabled { get; }
@@ -28,8 +33,13 @@ public class IntegrationTestConfiguration
     {
         ApiKey = Environment.GetEnvironmentVariable("TRANSLAAS_API_KEY") ?? string.Empty;
         // Note: Use the API host only (no path). The client calls /sdk/v1/translations/... and /api/v1/...
-        BaseUrl = Environment.GetEnvironmentVariable("TRANSLAAS_BASE_URL") ?? "https://sdk-api.translaas.local";
-        
+        BaseUrl = Environment.GetEnvironmentVariable("TRANSLAAS_BASE_URL") ?? "https://api.translaas.local";
+
+        var defaultProject = Environment.GetEnvironmentVariable("TRANSLAAS_DEFAULT_PROJECT");
+        DefaultProject = string.IsNullOrWhiteSpace(defaultProject)
+            ? IntegrationTestFixtures.DefaultProject
+            : defaultProject;
+
         // Integration tests are enabled if API key is provided
         IsEnabled = !string.IsNullOrWhiteSpace(ApiKey);
     }
