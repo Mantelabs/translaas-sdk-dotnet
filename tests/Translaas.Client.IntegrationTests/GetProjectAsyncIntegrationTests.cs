@@ -22,9 +22,8 @@ public class GetProjectAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        // Note: These values should match your development API test data
-        var project = "test-project";
-        var lang = "en";
+        var project = Configuration.DefaultProject;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         var result = await Client.GetProjectAsync(project, lang);
@@ -51,8 +50,8 @@ public class GetProjectAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        var project = "test-project";
-        var lang = "en";
+        var project = Configuration.DefaultProject;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
         var format = "json";
 
         // Act
@@ -81,7 +80,7 @@ public class GetProjectAsyncIntegrationTests : IntegrationTestBase
 
         // Arrange
         var project = "nonexistent-project";
-        var lang = "en";
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         // Note: API returns 204 No Content for non-existent projects, which returns empty project
@@ -103,8 +102,8 @@ public class GetProjectAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        var project = "test-project";
-        var lang = "en";
+        var project = Configuration.DefaultProject;
+        var lang = IntegrationTestFixtures.DefaultLanguage;
 
         // Act
         var result = await Client.GetProjectAsync(project, lang);

@@ -24,6 +24,7 @@ public abstract class IntegrationTestBase : IDisposable
         {
             ApiKey = Configuration.ApiKey,
             BaseUrl = Configuration.BaseUrl,
+            DefaultProjectId = Configuration.DefaultProject,
             Timeout = TimeSpan.FromSeconds(30)
         };
 

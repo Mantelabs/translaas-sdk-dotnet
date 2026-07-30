@@ -23,8 +23,7 @@ public class GetProjectLocalesAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        // Note: These values should match your development API test data
-        var project = "test-project";
+        var project = Configuration.DefaultProject;
 
         // Act
         var result = await Client.GetProjectLocalesAsync(project);
@@ -51,7 +50,7 @@ public class GetProjectLocalesAsyncIntegrationTests : IntegrationTestBase
         }
 
         // Arrange
-        var project = "test-project";
+        var project = Configuration.DefaultProject;
 
         // Act
         var result = await Client.GetProjectLocalesAsync(project);
