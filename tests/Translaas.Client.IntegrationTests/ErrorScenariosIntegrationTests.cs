@@ -134,13 +134,11 @@ public class ErrorScenariosIntegrationTests : IDisposable
     [Fact]
     public async Task Client_ShouldHandleNotFound_WhenResourceDoesNotExist()
     {
-        // Skip if integration tests are not enabled
         if (!_configuration.IsEnabled)
         {
             return;
         }
 
-        // Arrange
         var options = new TranslaasClientOptions
         {
             ApiKey = _configuration.ApiKey,
@@ -153,15 +151,17 @@ public class ErrorScenariosIntegrationTests : IDisposable
         }
 
         var client = new TranslaasClient(_httpClient, options);
+        const string entry = "nonexistent-entry";
 
-        // Act
-        // Note: API returns 204 No Content for non-existent entries, which returns the entry key as fallback
-        var result = await client.GetEntryAsync("nonexistent-group", "nonexistent-entry", "nonexistent-lang");
-
-        // Assert
-        // When entry is not found, API returns 204 and client returns the entry key as fallback
-        result.Should().NotBeNull();
-        result.Should().Be("nonexistent-entry"); // Client returns entry key when 204 No Content is received
+        try
+        {
+            var result = await client.GetEntryAsync("nonexistent-group", entry, "nonexistent-lang");
+            result.Should().Be(entry);
+        }
+        catch (TranslaasApiException ex) when (IntegrationTestHelpers.IsSdkNotFound(ex))
+        {
+            // Mantelabs platform returns HTTP 404 for missing SDK resources.
+        }
     }
 
     protected virtual void Dispose(bool disposing)

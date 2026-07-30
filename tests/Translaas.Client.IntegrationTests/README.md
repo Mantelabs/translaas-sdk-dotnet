@@ -83,18 +83,28 @@ Example SDK URL (matches Postman):
 
 Constants are centralized in `IntegrationTestFixtures.cs`. Override the project with `TRANSLAAS_DEFAULT_PROJECT` when your API uses a different project id.
 
-Tests that require populated payloads **soft-skip** when the API returns empty containers (204).
+Tests that require populated payloads **soft-skip** when the API returns empty containers (204) or when the Mantelabs platform returns **HTTP 404** for a missing project/group/entry.
 
-### API Behavior Notes
+### API behavior
 
-- The API returns **204 No Content** for non-existent resources (not 404 errors)
-- The client handles 204 responses by returning:
+| Endpoint | Missing resource | Go/.NET fixture API | Mantelabs platform | Integration test |
+|----------|------------------|---------------------|--------------------|------------------|
+| `GetEntryAsync` | not found | 204 → entry key fallback | 404 `TranslaasApiException` | Accepts 204 fallback or 404 |
+| `GetGroupAsync` / `GetProjectAsync` / `GetProjectLocalesAsync` | not found | 204 → empty container | 404 `TranslaasApiException` | Accepts empty container or 404 |
+| Invalid API key | auth failure | 401/403 | 401/403 | `TranslaasApiException` |
+
+Legacy fixture APIs return **204 No Content** for missing SDK resources. The Mantelabs platform returns **HTTP 404** with ProblemDetails. The .NET client still throws `TranslaasApiException` on 404; live integration tests accept either empty/fallback results **or** 404, and soft-skip happy-path tests when the configured project is missing.
+
+When the configured project or fixture data is missing, tests that need populated payloads **soft-skip** with a hint to set `TRANSLAAS_DEFAULT_PROJECT` (default: `translaas-sdk-samples`).
+
+### Legacy 204 client semantics
+
+When the API returns **204 No Content**, the client returns:
   - **GetEntryAsync**: Returns the entry key as fallback (common i18n pattern)
   - **GetGroupAsync**: Returns empty `TranslationGroup`
   - **GetProjectAsync**: Returns empty `TranslationProject`
   - **GetProjectLocalesAsync**: Returns empty `ProjectLocales`
-- Tests that expect data will fail if the test data doesn't exist in your API
-- Tests for "not found" scenarios expect empty data, not exceptions
+- Tests for "not found" scenarios accept empty data **or** Mantelabs HTTP 404
 
 ## CI/CD Integration
 
