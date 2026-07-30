@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # NuGet packages (central versions in Directory.Packages.props)
+  - package-ecosystem: 'nuget'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'automated'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    groups:
+      microsoft-extensions:
+        patterns:
+          - 'Microsoft.Extensions.*'
+      testing:
+        patterns:
+          - 'xunit*'
+          - 'Microsoft.NET.Test.Sdk'
+          - 'FluentAssertions'
+          - 'Moq'
+          - 'coverlet.collector'
+
+  # GitHub Actions (CI and publish workflows)
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'github-actions'
+      - 'automated'
