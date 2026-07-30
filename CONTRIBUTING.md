@@ -479,6 +479,61 @@ Once stable, release `1.0.0` as the first stable version.
 
 ### Release Notes
 
+## Version 0.4.2
+
+### Summary
+
+Patch release after **0.4.1-beta**. Fixes `TranslationProject` deserialization when the Mantelabs delivery API includes root metadata alongside translation groups. Also improves live integration test coverage for local Docker and adds Dependabot for NuGet and GitHub Actions.
+
+### Packages Included
+
+- **Translaas.Models** (0.4.2) - Data transfer objects (DTOs) for the Translaas Translation Delivery API
+- **Translaas.Client** (0.4.2) - Core HTTP client implementation with caching support
+- **Translaas.Caching** (0.4.2) - In-memory caching abstractions and implementations
+- **Translaas.Caching.File** (0.4.2) - File-based offline caching with hybrid caching support
+- **Translaas.Extensions.Http** (0.4.2) - HttpClientFactory integration extensions
+- **Translaas.Extensions.DependencyInjection** (0.4.2) - Full dependency injection integration
+- **Translaas.Extensions.Mvc** (0.4.2) - ASP.NET Core MVC/Razor integration with Tag Helpers
+
+### Fixed
+
+- **`TranslationProject`** — explicit root metadata properties (`Project`, `Lang`, `Version`, `GeneratedAt`, `Channel`) so `[JsonExtensionData]` `Groups` contains only translation group objects; `GetGroup` ignores non-object values ([#65](https://github.com/Mantelabs/translaas-sdk-dotnet/pull/65))
+
+### Changed
+
+- Live integration tests aligned with `translaas-sdk-samples` fixtures and Mantelabs HTTP 404 handling ([#64](https://github.com/Mantelabs/translaas-sdk-dotnet/pull/64), [#66](https://github.com/Mantelabs/translaas-sdk-dotnet/pull/66))
+- Dependabot weekly updates for NuGet and GitHub Actions ([#68](https://github.com/Mantelabs/translaas-sdk-dotnet/pull/68))
+
+### Supported Frameworks
+
+- .NET Standard 2.0
+- .NET 8.0
+- .NET 10.0
+
+### Installation
+
+```bash
+# Full DI integration (recommended)
+dotnet add package Translaas.Extensions.DependencyInjection --version 0.4.2
+
+# Or install individual packages
+dotnet add package Translaas.Client --version 0.4.2
+dotnet add package Translaas.Models --version 0.4.2
+dotnet add package Translaas.Caching --version 0.4.2
+dotnet add package Translaas.Caching.File --version 0.4.2
+dotnet add package Translaas.Extensions.Http --version 0.4.2
+dotnet add package Translaas.Extensions.Mvc --version 0.4.2
+```
+
+### Documentation
+
+- [README.md](README.md) - Getting started guide
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution and release guidelines
+- [GitHub Repository](https://github.com/Mantelabs/translaas-sdk-dotnet)
+- [Compare v0.4.1-beta...v0.4.2](https://github.com/Mantelabs/translaas-sdk-dotnet/compare/v0.4.1-beta...v0.4.2)
+
+---
+
 ## Version 0.4.1-beta (Pre-Release)
 
 ### Summary
