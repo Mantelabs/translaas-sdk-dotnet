@@ -15,7 +15,7 @@ permissions:
 jobs:
   # PRs and merges to main: Ubuntu only (.NET 8).
   build-ubuntu:
-    name: Build and Test — Ubuntu (.NET ${{ matrix.dotnet-version }})
+    name: Build and Test (.NET ${{ matrix.dotnet-version }})
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
