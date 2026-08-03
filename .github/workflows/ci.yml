@@ -1,53 +1,119 @@
 name: CI
 
+# Default: Ubuntu only (push/PR) to limit Actions spend across SDK repos.
+# Windows + macOS: run manually — Actions → CI → Run workflow.
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  build-and-test:
-    name: Build and Test (.NET ${{ matrix.dotnet-version }})
-    runs-on: ${{ matrix.os }}
-    
+  # PRs and merges to main: Ubuntu only (.NET 8).
+  build-ubuntu:
+    name: Build and Test — Ubuntu (.NET ${{ matrix.dotnet-version }})
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            dotnet-version: '8.0.x'
-            target-framework: 'net8.0'
-          - os: windows-latest
-            dotnet-version: '8.0.x'
-            target-framework: 'net8.0'
+        dotnet-version: ['8.0.x']
+        target-framework: ['net8.0']
         # Note: .NET 10.0 is excluded from CI until SDK is available on GitHub Actions
         # Projects still target net10.0 for future compatibility
         # Note: .NET 6.0 is temporarily removed due to VSTest test discovery compatibility issues
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
-    
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v6
-      with:
-        dotnet-version: ${{ matrix.dotnet-version }}
-    
-    - name: Restore dependencies
-      run: dotnet restore -p:TargetFrameworks=${{ matrix.target-framework }} --ignore-failed-sources
-      continue-on-error: false
-    
-    - name: Build
-      run: dotnet build --no-restore --configuration Release -f ${{ matrix.target-framework }} Translaas.SDK.slnx
-    
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory:"${{ github.workspace }}/TestResults" -f ${{ matrix.target-framework }}
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v7
-      if: always()
-      with:
-        name: test-results-${{ matrix.os }}-${{ matrix.dotnet-version }}
-        path: ${{ github.workspace }}/TestResults/**/*
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore dependencies
+        run: dotnet restore -p:TargetFrameworks=${{ matrix.target-framework }} --ignore-failed-sources
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release -f ${{ matrix.target-framework }} Translaas.SDK.slnx
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory:"${{ github.workspace }}/TestResults" -f ${{ matrix.target-framework }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-ubuntu-${{ matrix.dotnet-version }}
+          path: ${{ github.workspace }}/TestResults/**/*
+          retention-days: 30
+
+  # Windows: manual runs only (Actions → CI → Run workflow).
+  build-windows-manual:
+    name: Build and Test — Windows (.NET 8.0)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore -p:TargetFrameworks=net8.0 --ignore-failed-sources
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release -f net8.0 Translaas.SDK.slnx
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory:"${{ github.workspace }}/TestResults" -f net8.0
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-windows-8.0.x
+          path: ${{ github.workspace }}/TestResults/**/*
+          retention-days: 30
+
+  # macOS: manual runs only (Actions → CI → Run workflow).
+  build-macos-manual:
+    name: Build and Test — macOS (.NET 8.0)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore -p:TargetFrameworks=net8.0 --ignore-failed-sources
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release -f net8.0 Translaas.SDK.slnx
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory:"${{ github.workspace }}/TestResults" -f net8.0
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-results-macos-8.0.x
+          path: ${{ github.workspace }}/TestResults/**/*
+          retention-days: 30

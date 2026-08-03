@@ -291,6 +291,10 @@ When creating an issue, please use the appropriate template:
 4. Keep pull requests focused and reasonably sized
 5. Rebase on main branch if requested
 
+### Continuous integration
+
+The [**CI** workflow](.github/workflows/ci.yml) runs on **Ubuntu only** for push and pull request events (aligned with the other Translaas SDK repos). To verify build and tests on **Windows** or **macOS**, run **Actions → CI → Run workflow** (`workflow_dispatch`). NuGet publishing remains Linux-only via [`publish.yml`](.github/workflows/publish.yml).
+
 ## Code of Conduct
 
 - Be respectful and inclusive
