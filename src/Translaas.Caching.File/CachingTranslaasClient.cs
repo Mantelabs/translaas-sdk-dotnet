@@ -619,33 +619,13 @@ public class CachingTranslaasClient(
     }
 
     /// <summary>
-    /// Determines the plural category based on the number and language.
-    /// Uses simple rules: for most languages, 1 = One, everything else = Other.
+    /// Determines the CLDR cardinal plural category for offline cache selection.
     /// </summary>
-    /// <param name="number">The number value (for pluralization).</param>
-    /// <param name="lang">The language code.</param>
+    /// <param name="number">The number value (for pluralization). When <see langword="null"/>, returns <see cref="PluralCategory.Other"/>.</param>
+    /// <param name="lang">BCP-47 language tag used by <see cref="CldrPluralCategoryResolver"/>.</param>
     /// <returns>The plural category.</returns>
-    private static PluralCategory DeterminePluralCategory(decimal? number, string lang)
-    {
-        // If no number provided, default to Other
-        if (!number.HasValue)
-        {
-            return PluralCategory.Other;
-        }
-
-        var num = number.Value;
-
-        // Simple rule for most languages: 1 = One, everything else = Other
-        // This covers English, Spanish, French, German, Italian, Portuguese, etc.
-        if (num == 1)
-        {
-            return PluralCategory.One;
-        }
-
-        // For more complex languages (Russian, Arabic, etc.), we'd need CLDR rules
-        // For now, default to Other as it's the most common fallback
-        return PluralCategory.Other;
-    }
+    private static PluralCategory DeterminePluralCategory(decimal? number, string lang) =>
+        CldrPluralCategoryResolver.ResolveCategory(number, lang);
 
     /// <summary>
     /// Merges the number parameter into the parameters dictionary, creating a case-insensitive dictionary.
