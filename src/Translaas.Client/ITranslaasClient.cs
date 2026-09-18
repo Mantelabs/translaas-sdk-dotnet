@@ -24,7 +24,8 @@ public interface ITranslaasClient
     /// <param name="requestContext">Optional channel, version, project (when key is not project-scoped), and conditional GET options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The translated text, or empty when <see cref="TranslaasRequestContext.NotModified"/> is <see langword="true"/>.</returns>
-    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error.</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task<string> GetEntryAsync(
         string group,
         string entry,
@@ -37,6 +38,8 @@ public interface ITranslaasClient
     /// <summary>
     /// Gets all translations for a translation group.
     /// </summary>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task<TranslationGroup> GetGroupAsync(
         string project,
         string group,
@@ -48,6 +51,8 @@ public interface ITranslaasClient
     /// <summary>
     /// Gets all translations for a project.
     /// </summary>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task<TranslationProject> GetProjectAsync(
         string project,
         string lang,
@@ -58,6 +63,8 @@ public interface ITranslaasClient
     /// <summary>
     /// Gets available locales for a project.
     /// </summary>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task<ProjectLocales> GetProjectLocalesAsync(
         string project,
         TranslaasRequestContext? requestContext = null,
@@ -70,6 +77,8 @@ public interface ITranslaasClient
     /// <param name="requestContext">Optional channel, version, <c>includeContext</c>, and conditional GET (<c>If-None-Match</c>).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>ZIP bytes or a not-modified result.</returns>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task<OfflineCacheDownloadResult> GetOfflineCacheAsync(
         string project,
         TranslaasRequestContext? requestContext = null,
@@ -78,7 +87,8 @@ public interface ITranslaasClient
     /// <summary>
     /// Reports one or more missing translation keys (expects HTTP 202).
     /// </summary>
-    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error.</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task ReportMissingKeysAsync(
         IEnumerable<ReportMissingKeyItemRequest> keys,
         CancellationToken cancellationToken = default);
@@ -86,5 +96,7 @@ public interface ITranslaasClient
     /// <summary>
     /// Validates the configured API key (<c>GET /api/v1/api-keys/validate</c>).
     /// </summary>
+    /// <exception cref="Translaas.Models.Errors.TranslaasApiException">Thrown when the API returns an error, or when the request times out (HTTP 408).</exception>
+    /// <exception cref="Translaas.Models.Errors.TranslaasTransportException">Thrown when connect, TLS, DNS, or other HTTP transport failures occur.</exception>
     Task<ValidateApiKeyResponse> ValidateApiKeyAsync(CancellationToken cancellationToken = default);
 }

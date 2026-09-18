@@ -977,10 +977,13 @@ The SDK provides comprehensive error handling with specific exception types for 
 ### Exception Types
 
 - **`TranslaasException`** - Base exception for all Translaas errors
-- **`TranslaasApiException`** - Thrown when the API returns an error (includes HTTP status code)
+- **`TranslaasApiException`** - Thrown when the API returns an error (includes HTTP status code) or when the request times out (408)
+- **`TranslaasTransportException`** - Thrown on connect / TLS / DNS failures (not an HTTP status; inspect `InnerException`)
 - **`TranslaasConfigurationException`** - Thrown when configuration is invalid
 - **`TranslaasOfflineCacheException`** - Base exception for offline cache errors
 - **`TranslaasOfflineCacheMissException`** - Thrown when translation is not found in offline cache
+
+Catch **`TranslaasTransportException`** (or the base **`TranslaasException`**) in addition to **`TranslaasApiException`**. Connect failures are no longer reported as HTTP 400.
 
 ### Basic Error Handling
 
@@ -1021,10 +1024,11 @@ catch (TranslaasOfflineCacheMissException ex)
     Console.WriteLine($"Project: {ex.Project}");
     Console.WriteLine($"Language: {ex.Language}");
 }
-catch (System.Net.Http.HttpRequestException ex)
+catch (TranslaasTransportException ex)
 {
-    // Handle network errors
-    Console.WriteLine($"Network Error: {ex.Message}");
+    // Handle connect / TLS / DNS failures (no HTTP status)
+    Console.WriteLine($"Transport Error: {ex.Message}");
+    Console.WriteLine($"Cause: {ex.InnerException?.Message}");
 }
 catch (System.OperationCanceledException)
 {
@@ -1060,7 +1064,7 @@ catch (TranslaasApiException ex)
 
 ### Error Handling Best Practices
 
-1. **Always catch specific exceptions first** - Catch `TranslaasApiException` before `TranslaasException`
+1. **Always catch specific exceptions first** - Catch `TranslaasTransportException` and `TranslaasApiException` before `TranslaasException`. `TranslaasApiException` no longer covers connect / TLS / DNS failures.
 2. **Handle offline cache misses gracefully** - Provide fallback behavior when cache misses occur
 3. **Log errors appropriately** - Include context (project, group, entry, language) in error logs
 4. **Provide user-friendly messages** - Translate error messages for end users when appropriate
@@ -1082,6 +1086,11 @@ public async Task<string> GetTranslationSafely(string group, string entry, strin
     {
         _logger.LogError(ex, "API error retrieving translation: {Group}.{Entry} ({Lang})", group, entry, lang);
         throw; // Re-throw for other API errors
+    }
+    catch (TranslaasTransportException ex)
+    {
+        _logger.LogError(ex, "Transport error retrieving translation: {Group}.{Entry} ({Lang})", group, entry, lang);
+        throw;
     }
 }
 ```

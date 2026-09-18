@@ -763,11 +763,15 @@ public class CachingTranslaasClient(
 
     private static bool IsNetworkOrApiError(Exception ex)
     {
-        // Check for common network/API errors that should trigger cache fallback
-        return ex is System.Net.Http.HttpRequestException
-            || ex is TaskCanceledException
-            || ex is TimeoutException
-            || ex is TranslaasApiException;
+        if (ex is OperationCanceledException)
+        {
+            return false;
+        }
+
+        return ex is TranslaasTransportException
+            || ex is System.Net.Http.HttpRequestException
+            || ex is TranslaasApiException
+            || ex is TimeoutException;
     }
 
     #endregion

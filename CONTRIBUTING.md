@@ -483,6 +483,8 @@ Once stable, release `1.0.0` as the first stable version.
 
 ### Release Notes
 
+**Unreleased:** see [CHANGELOG.md](CHANGELOG.md#unreleased) for in-progress SDK changes (including transport error handling).
+
 ## Version 0.4.2
 
 ### Summary
