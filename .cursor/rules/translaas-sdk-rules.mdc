@@ -176,9 +176,9 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 ### Exception Types
 
 - **TranslaasException**: Base exception for all Translaas API errors
-- **TranslaasApiException**: HTTP errors from the API (status codes)
+- **TranslaasApiException**: HTTP errors from the API (status codes) and request timeouts (408)
+- **TranslaasTransportException**: Connect / TLS / DNS failures (not an HTTP status)
 - **TranslaasConfigurationException**: Configuration/setup errors
-- Use `HttpRequestException` for network-level errors
 
 ### Error Handling Pattern
 
@@ -191,10 +191,9 @@ try
 }
 catch (HttpRequestException ex)
 {
-    throw new TranslaasApiException(
+    throw new TranslaasTransportException(
         $"Failed to retrieve translation: {ex.Message}",
-        ex,
-        statusCode: response?.StatusCode);
+        ex);
 }
 ```
 
