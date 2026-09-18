@@ -144,6 +144,23 @@ public class CachingTranslaasClientTests
             () => client.GetEntryAsync("common", "hello", "en"));
     }
 
+    [Fact]
+    public async Task GetEntryAsync_CacheFirst_ThrowsCacheMissException_WhenTransportExceptionAndNoCacheHit()
+    {
+        var client = CreateClient(OfflineFallbackMode.CacheFirst);
+
+        _mockCacheProvider
+            .Setup(c => c.GetGroupAsync(DefaultProjectId, "common", "en", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((TranslationGroup?)null);
+
+        _mockInnerClient
+            .Setup(c => c.GetEntryAsync("common", "hello", "en", null, null, null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateTransportException());
+
+        await Assert.ThrowsAsync<TranslaasOfflineCacheMissException>(
+            () => client.GetEntryAsync("common", "hello", "en"));
+    }
+
     #endregion
 
     #region GetEntryAsync - ApiFirst Tests
@@ -186,6 +203,47 @@ public class CachingTranslaasClientTests
 
         // Assert
         result.Should().Be("Hello from Cache");
+    }
+
+    [Fact]
+    public async Task GetEntryAsync_ApiFirst_FallsBackToCache_OnTransportException()
+    {
+        var client = CreateClient(OfflineFallbackMode.ApiFirst);
+        var cachedGroup = CreateTranslationGroup("hello", "Hello from Cache");
+
+        _mockInnerClient
+            .Setup(c => c.GetEntryAsync("common", "hello", "en", null, null, null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateTransportException());
+
+        _mockCacheProvider
+            .Setup(c => c.GetGroupAsync(DefaultProjectId, "common", "en", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedGroup);
+
+        var result = await client.GetEntryAsync("common", "hello", "en");
+
+        result.Should().Be("Hello from Cache");
+        _mockInnerClient.Verify(
+            c => c.GetEntryAsync("common", "hello", "en", null, null, null, It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetEntryAsync_ApiFirst_PropagatesTaskCanceledException_WhenCallerTokenCanceled()
+    {
+        var client = CreateClient(OfflineFallbackMode.ApiFirst);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        _mockInnerClient
+            .Setup(c => c.GetEntryAsync("common", "hello", "en", null, null, null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TaskCanceledException("A task was canceled."));
+
+        await Assert.ThrowsAsync<TaskCanceledException>(
+            () => client.GetEntryAsync("common", "hello", "en", cancellationToken: cancellationTokenSource.Token));
+
+        _mockCacheProvider.Verify(
+            c => c.GetGroupAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     #endregion
@@ -436,6 +494,25 @@ public class CachingTranslaasClientTests
         result.Should().BeSameAs(cachedProject);
     }
 
+    [Fact]
+    public async Task GetProjectAsync_ApiFirst_FallsBackToCache_OnTransportException()
+    {
+        var client = CreateClient(OfflineFallbackMode.ApiFirst);
+        var cachedProject = new TranslationProject();
+
+        _mockInnerClient
+            .Setup(c => c.GetProjectAsync("my-project", "en", null, null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(CreateTransportException());
+
+        _mockCacheProvider
+            .Setup(c => c.GetProjectAsync("my-project", "en", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cachedProject);
+
+        var result = await client.GetProjectAsync("my-project", "en");
+
+        result.Should().BeSameAs(cachedProject);
+    }
+
     #endregion
 
     #region GetProjectAsync - CacheOnly Tests
@@ -561,6 +638,13 @@ public class CachingTranslaasClientTests
         var json = JsonSerializer.Serialize(value);
         group.Entries[key] = JsonDocument.Parse(json).RootElement;
         return group;
+    }
+
+    private static TranslaasTransportException CreateTransportException()
+    {
+        return new TranslaasTransportException(
+            "Failed to retrieve translation: Network error",
+            new System.Net.Http.HttpRequestException("Network error"));
     }
 
     #endregion
