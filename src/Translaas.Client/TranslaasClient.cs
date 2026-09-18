@@ -167,23 +167,9 @@ public class TranslaasClient : ITranslaasClient
 
             return result;
         }
-        catch (TranslaasApiException)
+        catch (Exception ex)
         {
-            throw;
-        }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            throw new TranslaasApiException(
-                $"Request timed out after {_httpClient.Timeout.TotalSeconds} seconds.",
-                HttpStatusCode.RequestTimeout,
-                ex);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TranslaasApiException(
-                $"Failed to retrieve translation: {ex.Message}",
-                HttpStatusCode.BadRequest,
-                ex);
+            throw MapSendFailure(ex, "Failed to retrieve translation: ", cancellationToken);
         }
     }
 
@@ -270,23 +256,9 @@ public class TranslaasClient : ITranslaasClient
 
             return result;
         }
-        catch (TranslaasApiException)
+        catch (Exception ex)
         {
-            throw;
-        }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            throw new TranslaasApiException(
-                $"Request timed out after {_httpClient.Timeout.TotalSeconds} seconds.",
-                HttpStatusCode.RequestTimeout,
-                ex);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TranslaasApiException(
-                $"Failed to retrieve translation group: {ex.Message}",
-                HttpStatusCode.BadRequest,
-                ex);
+            throw MapSendFailure(ex, "Failed to retrieve translation group: ", cancellationToken);
         }
     }
 
@@ -366,23 +338,9 @@ public class TranslaasClient : ITranslaasClient
 
             return result;
         }
-        catch (TranslaasApiException)
+        catch (Exception ex)
         {
-            throw;
-        }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            throw new TranslaasApiException(
-                $"Request timed out after {_httpClient.Timeout.TotalSeconds} seconds.",
-                HttpStatusCode.RequestTimeout,
-                ex);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TranslaasApiException(
-                $"Failed to retrieve translation project: {ex.Message}",
-                HttpStatusCode.BadRequest,
-                ex);
+            throw MapSendFailure(ex, "Failed to retrieve translation project: ", cancellationToken);
         }
     }
 
@@ -449,23 +407,9 @@ public class TranslaasClient : ITranslaasClient
 
             return result;
         }
-        catch (TranslaasApiException)
+        catch (Exception ex)
         {
-            throw;
-        }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            throw new TranslaasApiException(
-                $"Request timed out after {_httpClient.Timeout.TotalSeconds} seconds.",
-                HttpStatusCode.RequestTimeout,
-                ex);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TranslaasApiException(
-                $"Failed to retrieve project locales: {ex.Message}",
-                HttpStatusCode.BadRequest,
-                ex);
+            throw MapSendFailure(ex, "Failed to retrieve project locales: ", cancellationToken);
         }
     }
 
@@ -487,46 +431,53 @@ public class TranslaasClient : ITranslaasClient
 
         var request = BuildGetRequest($"{SdkTranslationsPrefix}/offline-cache", requestModel, null, requestContext);
 
-        using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-
-        if (response.StatusCode == HttpStatusCode.NotModified)
+        try
         {
-            var etag304 = response.Headers.ETag?.ToString();
-            AssignResponseContext(response, requestContext, notModified: true);
-            return new OfflineCacheDownloadResult
+            using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+            if (response.StatusCode == HttpStatusCode.NotModified)
             {
-                NotModified = true,
-                ETag = etag304,
-                SuggestedFileName = null,
-                Content = null
-            };
-        }
+                var etag304 = response.Headers.ETag?.ToString();
+                AssignResponseContext(response, requestContext, notModified: true);
+                return new OfflineCacheDownloadResult
+                {
+                    NotModified = true,
+                    ETag = etag304,
+                    SuggestedFileName = null,
+                    Content = null
+                };
+            }
 
-        if (!response.IsSuccessStatusCode)
-        {
-            await HandleApiError(response, cancellationToken).ConfigureAwait(false);
-        }
+            if (!response.IsSuccessStatusCode)
+            {
+                await HandleApiError(response, cancellationToken).ConfigureAwait(false);
+            }
 
-        AssignResponseContext(response, requestContext);
+            AssignResponseContext(response, requestContext);
 
-        var responseEtag = response.Headers.ETag?.ToString();
-        var fileName = response.Content.Headers.ContentDisposition?.FileNameStar?.Trim('"')
-            ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"');
+            var responseEtag = response.Headers.ETag?.ToString();
+            var fileName = response.Content.Headers.ContentDisposition?.FileNameStar?.Trim('"')
+                ?? response.Content.Headers.ContentDisposition?.FileName?.Trim('"');
 
-        byte[] content;
+            byte[] content;
 #if NETSTANDARD2_0
-        content = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+            content = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 #else
-        content = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            content = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-        return new OfflineCacheDownloadResult
+            return new OfflineCacheDownloadResult
+            {
+                NotModified = false,
+                ETag = responseEtag,
+                SuggestedFileName = fileName,
+                Content = content
+            };
+        }
+        catch (Exception ex)
         {
-            NotModified = false,
-            ETag = responseEtag,
-            SuggestedFileName = fileName,
-            Content = content
-        };
+            throw MapSendFailure(ex, "Failed to download offline cache: ", cancellationToken);
+        }
     }
 
     /// <inheritdoc />
@@ -554,23 +505,9 @@ public class TranslaasClient : ITranslaasClient
                 await HandleApiError(response, cancellationToken).ConfigureAwait(false);
             }
         }
-        catch (TranslaasApiException)
+        catch (Exception ex)
         {
-            throw;
-        }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            throw new TranslaasApiException(
-                $"Request timed out after {_httpClient.Timeout.TotalSeconds} seconds.",
-                HttpStatusCode.RequestTimeout,
-                ex);
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new TranslaasApiException(
-                $"Failed to report missing keys: {ex.Message}",
-                HttpStatusCode.BadRequest,
-                ex);
+            throw MapSendFailure(ex, "Failed to report missing keys: ", cancellationToken);
         }
     }
 
@@ -592,24 +529,35 @@ public class TranslaasClient : ITranslaasClient
 
             return await ParseJsonResponse<ValidateApiKeyResponse>(response, cancellationToken).ConfigureAwait(false);
         }
-        catch (TranslaasApiException)
+        catch (Exception ex)
         {
-            throw;
+            throw MapSendFailure(ex, "Failed to validate API key: ", cancellationToken);
         }
-        catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+    }
+
+    private Exception MapSendFailure(Exception ex, string operationMessagePrefix, CancellationToken cancellationToken)
+    {
+        if (ex is TranslaasApiException)
         {
-            throw new TranslaasApiException(
+            return ex;
+        }
+
+        if (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)
+        {
+            return new TranslaasApiException(
                 $"Request timed out after {_httpClient.Timeout.TotalSeconds} seconds.",
                 HttpStatusCode.RequestTimeout,
                 ex);
         }
-        catch (HttpRequestException ex)
+
+        if (ex is HttpRequestException httpRequestException)
         {
-            throw new TranslaasApiException(
-                $"Failed to validate API key: {ex.Message}",
-                HttpStatusCode.BadRequest,
-                ex);
+            return new TranslaasTransportException(
+                $"{operationMessagePrefix}{httpRequestException.Message}",
+                httpRequestException);
         }
+
+        return ex;
     }
 
     private static void PrepareRequestContext(TranslaasRequestContext? ctx)
