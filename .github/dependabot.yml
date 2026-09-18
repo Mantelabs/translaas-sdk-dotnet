@@ -13,9 +13,6 @@ updates:
       prefix: 'chore'
       include: 'scope'
     groups:
-      microsoft-extensions:
-        patterns:
-          - 'Microsoft.Extensions.*'
       testing:
         patterns:
           - 'xunit*'
@@ -23,6 +20,11 @@ updates:
           - 'FluentAssertions'
           - 'Moq'
           - 'coverlet.collector'
+      microsoft-dotnet:
+        patterns:
+          - 'Microsoft.*'
+          - 'System.*'
+          - 'dotnet-*'
 
   # GitHub Actions (CI and publish workflows)
   - package-ecosystem: 'github-actions'
