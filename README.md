@@ -675,7 +675,7 @@ services.AddTranslaas(options =>
 
 ## Offline Caching
 
-The SDK supports file-based offline caching, allowing your application to work without network connectivity by caching translations locally in JSON files.
+The SDK supports file-based offline caching, allowing your application to work without network connectivity by caching translations locally in JSON files. Offline `GetEntryAsync` selects plural forms with CLDR cardinal rules for the requested locale (`zero` / `one` / `two` / `few` / `many` / `other`).
 
 ### Enabling Offline Cache
 
