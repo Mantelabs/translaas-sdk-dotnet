@@ -483,7 +483,69 @@ Once stable, release `1.0.0` as the first stable version.
 
 ### Release Notes
 
-**Unreleased:** see [CHANGELOG.md](CHANGELOG.md#unreleased) for in-progress SDK changes (including transport error handling).
+**Unreleased:** see [CHANGELOG.md](CHANGELOG.md#unreleased) for in-progress SDK changes.
+
+## Version 0.5.0
+
+### Summary
+
+Minor release after **0.4.2**. Connect, TLS, and DNS failures now raise `TranslaasTransportException` instead of `TranslaasApiException` with HTTP 400. Offline plural selection uses CLDR cardinal rules.
+
+### Packages Included
+
+- **Translaas.Models** (0.5.0) - Data transfer objects (DTOs) for the Translaas Translation Delivery API
+- **Translaas.Client** (0.5.0) - Core HTTP client implementation with caching support
+- **Translaas.Caching** (0.5.0) - In-memory caching abstractions and implementations
+- **Translaas.Caching.File** (0.5.0) - File-based offline caching with hybrid caching support
+- **Translaas.Extensions.Http** (0.5.0) - HttpClientFactory integration extensions
+- **Translaas.Extensions.DependencyInjection** (0.5.0) - Full dependency injection integration
+- **Translaas.Extensions.Mvc** (0.5.0) - ASP.NET Core MVC/Razor integration with Tag Helpers
+
+### Breaking
+
+- Connect / TLS / DNS failures are no longer `TranslaasApiException` (HTTP **400**). Timeouts remain **408**. Callers that only caught `TranslaasApiException` should also handle `TranslaasTransportException` or base `TranslaasException` ([#92](https://github.com/Mantelabs/translaas-sdk-dotnet/pull/92)).
+
+### Added
+
+- `TranslaasTransportException` for connect / TLS / DNS failures (`InnerException` / unwrap).
+
+### Changed
+
+- `Translaas.Caching.File` depends on ICU4N (and its ICU data packages) for offline CLDR plural selection. Mobile / MAUI apps should account for the extra package size.
+
+### Fixed
+
+- Offline / file-cache `GetEntryAsync` plural selection now uses CLDR cardinal rules for the request locale (via ICU4N), matching the live API ([#94](https://github.com/Mantelabs/translaas-sdk-dotnet/pull/94)).
+
+### Supported Frameworks
+
+- .NET Standard 2.0
+- .NET 8.0
+- .NET 10.0
+
+### Installation
+
+```bash
+# Full DI integration (recommended)
+dotnet add package Translaas.Extensions.DependencyInjection --version 0.5.0
+
+# Or install individual packages
+dotnet add package Translaas.Client --version 0.5.0
+dotnet add package Translaas.Models --version 0.5.0
+dotnet add package Translaas.Caching --version 0.5.0
+dotnet add package Translaas.Caching.File --version 0.5.0
+dotnet add package Translaas.Extensions.Http --version 0.5.0
+dotnet add package Translaas.Extensions.Mvc --version 0.5.0
+```
+
+### Documentation
+
+- [README.md](README.md) - Getting started guide
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution and release guidelines
+- [GitHub Repository](https://github.com/Mantelabs/translaas-sdk-dotnet)
+- [Compare v0.4.2...v0.5.0](https://github.com/Mantelabs/translaas-sdk-dotnet/compare/v0.4.2...v0.5.0)
+
+---
 
 ## Version 0.4.2
 

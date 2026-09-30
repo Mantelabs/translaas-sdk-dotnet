@@ -36,7 +36,7 @@ dotnet add package Translaas.Extensions.DependencyInjection
 ### PackageReference
 
 ```xml
-<PackageReference Include="Translaas.Extensions.DependencyInjection" Version="0.4.2" />
+<PackageReference Include="Translaas.Extensions.DependencyInjection" Version="0.5.0" />
 ```
 
 ### Individual Packages
