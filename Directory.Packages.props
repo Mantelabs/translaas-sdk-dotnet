@@ -21,7 +21,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="11.0.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.0" />
     <!-- 11.0.0 breaks the .NET 8 VSTest host (JsonObjectInfoValues.ObjectCreator). -->
-    <PackageVersion Include="System.Text.Json" Version="10.0.13" />
+    <PackageVersion Include="System.Text.Json" Version="11.0.0" />
     <PackageVersion Include="ICU4N" Version="60.1.0-alpha.440" />
     <!-- MAUI Dependencies -->
     <!-- Note: CommunityToolkit.Maui not yet compatible with .NET 10 MAUI as of Dec 2024 -->
